@@ -4,7 +4,10 @@ import java.util.Iterator;
 import lejos.hardware.Button;
 import lejos.hardware.ev3.LocalEV3;
 import lejos.hardware.lcd.GraphicsLCD;
+import lejos.hardware.motor.EV3LargeRegulatedMotor;
+import lejos.hardware.motor.EV3MediumRegulatedMotor;
 import lejos.hardware.motor.Motor;
+import lejos.hardware.port.MotorPort;
 import lejos.hardware.port.Port;
 import lejos.hardware.port.SensorPort;
 import lejos.hardware.sensor.EV3ColorSensor;
@@ -20,6 +23,7 @@ public class App {
 	public static void main(String[] args) throws IOException {
 		Wheel wheel1 = WheeledChassis.modelWheel(Motor.A, 23).offset(-86);
 		Wheel wheel2 = WheeledChassis.modelWheel(Motor.D, 23).offset(86);
+		EV3MediumRegulatedMotor motor = new EV3MediumRegulatedMotor(MotorPort.D);
 		
 //		EV3UltrasonicSensor ultraSonic = new EV3UltrasonicSensor(LocalEV3.get().getPort("S1"));
 		EV3UltrasonicSensor ultraSonic = new EV3UltrasonicSensor(SensorPort.S1);
@@ -59,6 +63,8 @@ public class App {
         pilot.rotate(-270);
         pilot.travel(50);               
         pilot.rotate(180);
+        motor.rotateTo(90);
+        motor.rotateTo(-90);
 		
 		while (pilot.isMoving())
 			Thread.yield();
