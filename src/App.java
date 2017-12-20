@@ -17,32 +17,35 @@ import lejos.robotics.navigation.MovePilot;
 
 public class App {
 
+	private static EV3UltrasonicSensor ultraSonic = new EV3UltrasonicSensor(SensorPort.S1);
+	private static EV3ColorSensor color = new EV3ColorSensor(SensorPort.S4); 
+	private static EV3Console console = new EV3Console();
+	private static SampleProvider distance = ultraSonic.getMode("Distance");
+	private static SampleProvider light = color.getMode("RGB");
+	private static float[] sampleD = new float[distance.sampleSize()];
+	private static float[] sampleL = new float[light.sampleSize()];
+	
 	public static void main(String[] args) throws IOException {
 		Wheel wheel1 = WheeledChassis.modelWheel(Motor.A, 23).offset(-86);
 		Wheel wheel2 = WheeledChassis.modelWheel(Motor.D, 23).offset(86);
-
-		EV3UltrasonicSensor ultraSonic = new EV3UltrasonicSensor(SensorPort.S1);
-	   	EV3ColorSensor color = new EV3ColorSensor(SensorPort.S4); 
 
 		GraphicsLCD g = LocalEV3.get().getGraphicsLCD();
 		
 		Chassis chassis = new WheeledChassis(new Wheel[] { wheel1, wheel2 }, WheeledChassis.TYPE_DIFFERENTIAL);
 		MovePilot pilot = new MovePilot(chassis);
 
-		g.drawString("Gestartet...", 5, 0, 0);
+		g.drawString("Connect to Server...", 5, 0, 0);
+		
+		g.drawString("Connected Successfully...", 10, 0, 0);
+		
+		console.log("Connecion established");
 		
 		pilot.setLinearSpeed(150); // cm per second
 		pilot.setAngularSpeed(100);
-
-		SampleProvider distance = ultraSonic.getMode("Distance");
-		SampleProvider light = color.getMode("RGB");
-		float[] sampleD = new float[distance.sampleSize()];
-		float[] sampleL = new float[light.sampleSize()];
 		
 		for (int i = 0; i < 3; i++) {
 			Button.waitForAnyPress();
-			distance.fetchSample(sampleD, 0);
-			distance.fetchSample(sampleL, 0);
+			readSensors();
 		}
 		
 //		pilot.travel(50);         // cm              
@@ -53,9 +56,16 @@ public class App {
 		
 		while (pilot.isMoving())
 			Thread.yield();
-		pilot.stop();
+//		pilot.stop();
 		
 		Button.waitForAnyPress();
 		if(Button.ESCAPE.isDown()) System.exit(0);
+	}
+	
+	public static void readSensors() {
+		distance.fetchSample(sampleD, 0);
+		console.log("Distance: " + sampleD[0]);
+		distance.fetchSample(sampleL, 0);
+		console.log("Light: " + sampleL[0]);
 	}
 }
