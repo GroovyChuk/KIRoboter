@@ -4,7 +4,10 @@ import java.util.Iterator;
 import lejos.hardware.Button;
 import lejos.hardware.ev3.LocalEV3;
 import lejos.hardware.lcd.GraphicsLCD;
+import lejos.hardware.motor.EV3LargeRegulatedMotor;
+import lejos.hardware.motor.EV3MediumRegulatedMotor;
 import lejos.hardware.motor.Motor;
+import lejos.hardware.port.MotorPort;
 import lejos.hardware.port.Port;
 import lejos.hardware.port.SensorPort;
 import lejos.hardware.sensor.EV3ColorSensor;
@@ -26,9 +29,11 @@ public class App {
 	private static float[] sampleL = new float[light.sampleSize()];
 	
 	public static void main(String[] args) throws IOException {
-		Wheel wheel1 = WheeledChassis.modelWheel(Motor.A, 56).offset(-58);
-		Wheel wheel2 = WheeledChassis.modelWheel(Motor.D, 56).offset(58);
 
+		Wheel wheel1 = WheeledChassis.modelWheel(Motor.A, 23).offset(-86);
+		Wheel wheel2 = WheeledChassis.modelWheel(Motor.D, 23).offset(86);
+		EV3MediumRegulatedMotor motor = new EV3MediumRegulatedMotor(MotorPort.D);
+		
 		GraphicsLCD g = LocalEV3.get().getGraphicsLCD();
 		
 		Chassis chassis = new WheeledChassis(new Wheel[] { wheel1, wheel2 }, WheeledChassis.TYPE_DIFFERENTIAL);
@@ -50,7 +55,7 @@ public class App {
 		readSensors();
         pilot.rotate(-180);
 		readSensors();
-        
+
 		while (pilot.isMoving())
 			Thread.yield();
 		pilot.stop();
