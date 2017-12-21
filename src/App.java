@@ -24,11 +24,10 @@ public class App {
 		Wheel wheel1 = WheeledChassis.modelWheel(Motor.A, 23).offset(-86);
 		Wheel wheel2 = WheeledChassis.modelWheel(Motor.D, 23).offset(86);
 		EV3MediumRegulatedMotor motor = new EV3MediumRegulatedMotor(MotorPort.D);
-		
-//		EV3UltrasonicSensor ultraSonic = new EV3UltrasonicSensor(LocalEV3.get().getPort("S1"));
+
 		EV3UltrasonicSensor ultraSonic = new EV3UltrasonicSensor(SensorPort.S1);
 	   	EV3ColorSensor color = new EV3ColorSensor(SensorPort.S4); 
-		
+
 		GraphicsLCD g = LocalEV3.get().getGraphicsLCD();
 		
 		Chassis chassis = new WheeledChassis(new Wheel[] { wheel1, wheel2 }, WheeledChassis.TYPE_DIFFERENTIAL);
@@ -40,23 +39,15 @@ public class App {
 		pilot.setAngularSpeed(100);
 
 		SampleProvider distance = ultraSonic.getMode("Distance");
-		float[] sample = new float[distance.sampleSize()];
-		distance.fetchSample(sample, 0);
+		SampleProvider light = color.getMode("RGB");
+		float[] sampleD = new float[distance.sampleSize()];
+		float[] sampleL = new float[light.sampleSize()];
 		
-			
-		
-		for (int i = 0; i < 5; i++) {
+		for (int i = 0; i < 3; i++) {
 			Button.waitForAnyPress();
-			distance.fetchSample(sample, 0);
-			g.drawString("Distanz: " + sample[0], 5, 20*i + 20, 0);
+			distance.fetchSample(sampleD, 0);
+			distance.fetchSample(sampleL, 0);
 		}
-
-			
-		
-//		for (int i = 0; i < 5; i++) {
-//			pilot.travel(100); // cm
-//			pilot.rotate(-180); // degree clockwise
-//		}
 		
 		pilot.travel(50);         // cm              
         pilot.rotate(90);        // degree clockwise
@@ -65,6 +56,7 @@ public class App {
         pilot.rotate(180);
         motor.rotateTo(90);
         motor.rotateTo(-90);
+
 		
 		while (pilot.isMoving())
 			Thread.yield();
