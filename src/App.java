@@ -26,8 +26,8 @@ public class App {
 	private static float[] sampleL = new float[light.sampleSize()];
 	
 	public static void main(String[] args) throws IOException {
-		Wheel wheel1 = WheeledChassis.modelWheel(Motor.A, 23).offset(-86);
-		Wheel wheel2 = WheeledChassis.modelWheel(Motor.D, 23).offset(86);
+		Wheel wheel1 = WheeledChassis.modelWheel(Motor.A, 56).offset(-58);
+		Wheel wheel2 = WheeledChassis.modelWheel(Motor.D, 56).offset(58);
 
 		GraphicsLCD g = LocalEV3.get().getGraphicsLCD();
 		
@@ -36,27 +36,24 @@ public class App {
 
 		g.drawString("Connect to Server...", 5, 0, 0);
 		
-		g.drawString("Connected Successfully...", 10, 0, 0);
-		
 		console.log("Connecion established");
 		
 		pilot.setLinearSpeed(150); // cm per second
 		pilot.setAngularSpeed(100);
 		
-		for (int i = 0; i < 3; i++) {
-			Button.waitForAnyPress();
-			readSensors();
-		}
-		
-//		pilot.travel(50);         // cm              
-//        pilot.rotate(90);        // degree clockwise
-//        pilot.rotate(-270);
-//        pilot.travel(50);               
-//        pilot.rotate(180);
-		
+		readSensors();
+		pilot.travel(500);         // cm              
+		readSensors();
+		pilot.rotate(-90);        // degree clockwise
+        pilot.rotate(270);
+        pilot.travel(500);  
+		readSensors();
+        pilot.rotate(-180);
+		readSensors();
+        
 		while (pilot.isMoving())
 			Thread.yield();
-//		pilot.stop();
+		pilot.stop();
 		
 		Button.waitForAnyPress();
 		if(Button.ESCAPE.isDown()) System.exit(0);
@@ -66,6 +63,6 @@ public class App {
 		distance.fetchSample(sampleD, 0);
 		console.log("Distance: " + sampleD[0]);
 		distance.fetchSample(sampleL, 0);
-		console.log("Light: " + sampleL[0]);
+		console.log("R: " + sampleL[0] + "  G: " + sampleL[1] + "  B: " + sampleL[2]);
 	}
 }

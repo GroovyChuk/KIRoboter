@@ -1,3 +1,7 @@
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
 import org.fusesource.mqtt.client.BlockingConnection;
 import org.fusesource.mqtt.client.MQTT;
 import org.fusesource.mqtt.client.QoS;
@@ -9,7 +13,7 @@ public class EV3Console {
     private final int SERVER_PORT = 1883;
     private final String LOG_TOPIC = "log";
     private Thread connectThread;
-	
+	DateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
 	public EV3Console () {
 	
 		mqtt = new MQTT();
@@ -25,7 +29,8 @@ public class EV3Console {
 	
 	public void log (String msg) {
 	  try {
-            connection.publish(LOG_TOPIC, msg.getBytes() ,QoS.EXACTLY_ONCE, false);
+		  	Date date = new Date();
+            connection.publish(LOG_TOPIC, ("[" + dateFormat.format(date) + "] - " + msg).getBytes() ,QoS.EXACTLY_ONCE, false);
 	    } catch (Exception e) {
 	        e.printStackTrace();
 	    }
