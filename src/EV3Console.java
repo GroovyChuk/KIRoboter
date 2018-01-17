@@ -9,10 +9,9 @@ import org.fusesource.mqtt.client.QoS;
 public class EV3Console {
 	private MQTT mqtt;
     private BlockingConnection connection;
-    private final String SERVER_ADDRESS = "192.168.43.246";
+    private final String SERVER_ADDRESS = "192.168.43.197";
     private final int SERVER_PORT = 1883;
     private final String LOG_TOPIC = "log";
-    private Thread connectThread;
 	DateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
 	public EV3Console () {
 	
@@ -30,7 +29,7 @@ public class EV3Console {
 	public void log (String msg) {
 	  try {
 		  	Date date = new Date();
-            connection.publish(LOG_TOPIC, ("[" + dateFormat.format(date) + "] - " + msg).getBytes() ,QoS.EXACTLY_ONCE, false);
+            connection.publish(LOG_TOPIC, ("[" + dateFormat.format(date) + "] - " + msg).getBytes() ,QoS.AT_LEAST_ONCE, false);
 	    } catch (Exception e) {
 	        e.printStackTrace();
 	    }

@@ -18,7 +18,7 @@ public class SensorReader {
 		colorSensor = new EV3ColorSensor(SensorPort.S4); 
 		
 		distanceProvider = ultraSonicSensor.getMode("Distance");
-		lightProvider = colorSensor.getMode("RGB");
+		lightProvider = colorSensor.getRedMode();
 		
 		sampleDistance = new float[distanceProvider.sampleSize()];
 		sampleLight = new float[lightProvider.sampleSize()];

@@ -20,54 +20,102 @@ import lejos.robotics.navigation.MovePilot;
 
 public class App {
 
-	private static EV3UltrasonicSensor ultraSonic = new EV3UltrasonicSensor(SensorPort.S1);
-	private static EV3ColorSensor color = new EV3ColorSensor(SensorPort.S4); 
-	private static EV3Console console = new EV3Console();
-	private static SampleProvider distance = ultraSonic.getMode("Distance");
-	private static SampleProvider light = color.getMode("RGB");
-	private static float[] sampleD = new float[distance.sampleSize()];
-	private static float[] sampleL = new float[light.sampleSize()];
+	private static EV3Console console;
+	private static SensorReader sensorReader;
+	private static Chassis chassis;
+	private static MovePilot pilot;
 	
 	public static void main(String[] args) throws IOException {
 
-		Wheel wheel1 = WheeledChassis.modelWheel(Motor.A, 23).offset(-86);
-		Wheel wheel2 = WheeledChassis.modelWheel(Motor.D, 23).offset(86);
-		EV3MediumRegulatedMotor motor = new EV3MediumRegulatedMotor(MotorPort.D);
-		
 		GraphicsLCD g = LocalEV3.get().getGraphicsLCD();
-		
-		Chassis chassis = new WheeledChassis(new Wheel[] { wheel1, wheel2 }, WheeledChassis.TYPE_DIFFERENTIAL);
-		MovePilot pilot = new MovePilot(chassis);
-
 		g.drawString("Connect to Server...", 5, 0, 0);
 		
-		console.log("Connecion established");
+		console = new EV3Console();
+		sensorReader = new SensorReader(console);
+		Wheel wheel1 = WheeledChassis.modelWheel(Motor.A, 56).offset(-58);
+		Wheel wheel2 = WheeledChassis.modelWheel(Motor.D, 56).offset(58);
+		chassis = new WheeledChassis(new Wheel[] { wheel1, wheel2 }, WheeledChassis.TYPE_DIFFERENTIAL);
+		pilot = new MovePilot(chassis);
 		
 		pilot.setLinearSpeed(150); // cm per second
 		pilot.setAngularSpeed(100);
 		
-		readSensors();
-		pilot.travel(500);         // cm              
-		readSensors();
+		followLine(500);
+		
+	}
+
+	public static void aufgabe3_2() {
+		float distance[];
+		
+		pilot.travel(4000,true);
+		while (pilot.isMoving()) {
+			Thread.yield();
+			distance = sensorReader.readDistance();
+			sensorReader.logSensorData();
+			if (distance[0] >= 0.1)
+				pilot.stop();
+		}
+	}		
+	
+	public static void aufgabe3() {
+		
+//		readSensors();
+		pilot.travel(500);         // mm              
+//		readSensors();
 		pilot.rotate(-90);        // degree clockwise
         pilot.rotate(270);
         pilot.travel(500);  
-		readSensors();
+//		readSensors();
         pilot.rotate(-180);
-		readSensors();
+//		readSensors();
 
 		while (pilot.isMoving())
 			Thread.yield();
 		pilot.stop();
-		
-		Button.waitForAnyPress();
-		if(Button.ESCAPE.isDown()) System.exit(0);
 	}
 	
-	public static void readSensors() {
-		distance.fetchSample(sampleD, 0);
-		console.log("Distance: " + sampleD[0]);
-		distance.fetchSample(sampleL, 0);
-		console.log("R: " + sampleL[0] + "  G: " + sampleL[1] + "  B: " + sampleL[2]);
+	public static void followLine(float step) {
+
+		float light[];
+		float travelledDistance = 0;
+		boolean correct = false;
+		
+		console.log("following Line");
+		pilot.travel(step, true);
+		
+		while (pilot.isMoving()) {
+			Thread.yield();
+			light = sensorReader.readLight();
+			sensorReader.logSensorData();
+			if (light[0] < 0.1) {
+				travelledDistance = pilot.getMovement().getDistanceTraveled();
+				correct = true;
+				pilot.stop();
+			}
+		}
+		
+		if (correct) {
+			correctMove();
+			followLine(step-travelledDistance);
+		}
+	}
+	
+	public static void correctMove() {
+		boolean corrected = false;
+		
+		console.log("correcting");
+		pilot.rotate(20);
+		pilot.travel(20,true);
+		while (pilot.isMoving()) {
+			Thread.yield();
+			if (sensorReader.readLight()[0] > 0.1) {
+				corrected = true;
+				pilot.stop();
+			} 
+		}
+		if (!corrected) {
+			pilot.travel(-20);
+			pilot.rotate(-40);
+		}
 	}
 }
