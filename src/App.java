@@ -12,10 +12,14 @@ import lejos.hardware.port.Port;
 import lejos.hardware.port.SensorPort;
 import lejos.hardware.sensor.EV3ColorSensor;
 import lejos.hardware.sensor.EV3UltrasonicSensor;
+import lejos.robotics.FixedRangeScanner;
+import lejos.robotics.RangeFinderAdapter;
+import lejos.robotics.RangeScanner;
 import lejos.robotics.SampleProvider;
 import lejos.robotics.chassis.Chassis;
 import lejos.robotics.chassis.Wheel;
 import lejos.robotics.chassis.WheeledChassis;
+import lejos.robotics.localization.MCLPoseProvider;
 import lejos.robotics.navigation.MovePilot;
 
 public class App {
@@ -40,8 +44,7 @@ public class App {
 		pilot.setLinearSpeed(150); // cm per second
 		pilot.setAngularSpeed(100);
 		
-		followLine(500);
-		
+
 	}
 
 	public static void aufgabe3_2() {
@@ -59,15 +62,15 @@ public class App {
 	
 	public static void aufgabe3() {
 		
-//		readSensors();
+		sensorReader.logSensorData();
 		pilot.travel(500);         // mm              
-//		readSensors();
+		sensorReader.logSensorData();
 		pilot.rotate(-90);        // degree clockwise
         pilot.rotate(270);
         pilot.travel(500);  
-//		readSensors();
+        sensorReader.logSensorData();
         pilot.rotate(-180);
-//		readSensors();
+        sensorReader.logSensorData();
 
 		while (pilot.isMoving())
 			Thread.yield();
@@ -78,7 +81,7 @@ public class App {
 
 		float light[];
 		float travelledDistance = 0;
-		boolean correct = false;
+		boolean correction = false;
 		
 		console.log("following Line");
 		pilot.travel(step, true);
@@ -86,15 +89,15 @@ public class App {
 		while (pilot.isMoving()) {
 			Thread.yield();
 			light = sensorReader.readLight();
-			sensorReader.logSensorData();
+			
 			if (light[0] < 0.1) {
 				travelledDistance = pilot.getMovement().getDistanceTraveled();
-				correct = true;
+				correction = true;
 				pilot.stop();
 			}
 		}
 		
-		if (correct) {
+		if (correction) {
 			correctMove();
 			followLine(step-travelledDistance);
 		}

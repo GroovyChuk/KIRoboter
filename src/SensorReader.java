@@ -36,6 +36,10 @@ public class SensorReader {
 		return sampleDistance;
 	}
 	
+	public EV3UltrasonicSensor getUltraSonicSensor() {
+		return ultraSonicSensor;
+	}
+	
 	public void logSensorData () {
 		console.log("Distance: " + readDistance()[0] + " Meter\nLight: " + readLight()[0]);
 	}
