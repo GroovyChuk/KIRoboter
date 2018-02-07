@@ -8,14 +8,13 @@ public class SensorReader {
 	private SampleProvider lightProvider;
 	private EV3UltrasonicSensor ultraSonicSensor;
 	private EV3ColorSensor colorSensor;
-	private EV3Console console;
 	
 	private float[] sampleDistance;
 	private float[] sampleLight;
 	
-	public SensorReader (EV3Console ev3console) {
+	public SensorReader () {
 		ultraSonicSensor = new EV3UltrasonicSensor(SensorPort.S1);
-		colorSensor = new EV3ColorSensor(SensorPort.S4); 
+		colorSensor = new EV3ColorSensor(SensorPort.S2); 
 		
 		distanceProvider = ultraSonicSensor.getMode("Distance");
 		lightProvider = colorSensor.getRedMode();
@@ -23,7 +22,6 @@ public class SensorReader {
 		sampleDistance = new float[distanceProvider.sampleSize()];
 		sampleLight = new float[lightProvider.sampleSize()];
 		
-		console = ev3console;
 	}
 	
 	public float[] readLight () {
@@ -41,6 +39,6 @@ public class SensorReader {
 	}
 	
 	public void logSensorData () {
-		console.log("Distance: " + readDistance()[0] + " Meter\nLight: " + readLight()[0]);
+//		console.log("Distance: " + readDistance()[0] + " Meter\nLight: " + readLight()[0]);
 	}
 }

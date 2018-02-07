@@ -9,7 +9,7 @@ import org.fusesource.mqtt.client.QoS;
 public class EV3Console {
 	private MQTT mqtt;
     private BlockingConnection connection;
-    private final String SERVER_ADDRESS = "192.168.43.197";
+    private final String SERVER_ADDRESS = "192.168.43.246";
     private final int SERVER_PORT = 1883;
     private final String LOG_TOPIC = "log";
 	DateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
