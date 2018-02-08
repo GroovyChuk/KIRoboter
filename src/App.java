@@ -27,7 +27,7 @@ public class App {
 	public static void main(String[] args) throws IOException {
 
 		sensorMotor = new EV3MediumRegulatedMotor(MotorPort.B);
-		sensorMotor.setSpeed(90.0f); // degrees per second
+		sensorMotor.setSpeed(150.0f); // degrees per second
 		GraphicsLCD g = LocalEV3.get().getGraphicsLCD();
 		g.drawString("Connect to Server...", 5, 0, 0);
 		mqttClient = new MQTTClient();
@@ -45,14 +45,14 @@ public class App {
 		g.clear();
 		g.drawString("Connected", 5, 0, 0);
 		
-//		excercise2(4000);
-		
-		while(true) {
-			excercise3();
-		}
+		exercise2(4000);
+//		while(true) {
+//			exercise3();
+//		}
+
 	}
 
-	public static void excercise1() {
+	public static void exercise1() {
 		sensorReader.logSensorData();
 		pilot.travel(500);         // mm              
 		sensorReader.logSensorData();
@@ -68,38 +68,45 @@ public class App {
 		pilot.stop();
 	}	
 	
-	public static void excercise2 (float distanceToDrive)
+	public static void exercise2 (float distanceToDrive)
 	{
 
 		final float DRIVE_STEPS = 40;
 		int stepAmount = (int)(distanceToDrive / DRIVE_STEPS);
 	
-		rotateSensor(-90);
+		rotateSensor(-95);
 		
-		for (int i=0;i<stepAmount;++i)
+		for (int i=0;i<DRIVE_STEPS;++i)
 		{
-			followLine(DRIVE_STEPS);
-			mqttClient.publish(sensorReader.readDistance()[0] + "",MQTTClient.TOPIC_SONIC_DISTANCE);
+			followLine(stepAmount);
+			mqttClient.publish((sensorReader.readDistance()[0] * 100) + "",MQTTClient.TOPIC_SONIC_DISTANCE);
 		}
 		
 		mqttClient.publish("End",MQTTClient.TOPIC_LOG);
 		rotateSensorToTare();
 	}
 	
-	public static void excercise3() {
+	public static void exercise3() {
 		int rotations = 4, maxIndex = 0;
 		int degreeStep = 360/rotations;
-		double degree = 0.0, highestDistance = 0.0;
+		int degree = 0;
+		double highestDistance = 0.0;
+		
 		ScanTuple ultrasonicValues[] = new ScanTuple[rotations];
 			
 		//measure sensor data
 		for (int i = 0; i < rotations; i++) {
 			double temp_distance = sensorReader.readDistance()[0];
-
+			
+			if (temp_distance == Double.POSITIVE_INFINITY || temp_distance == Double.NEGATIVE_INFINITY)
+				temp_distance = 0;
+			
+			mqttClient.publishLog("Degree : " + degree + " Distance :" + temp_distance + " i: " + i);
+			
 			if (degree == 0) {
-				ultrasonicValues[i] = new ScanTuple(sensorReader.readDistance()[0], 360);				
+				ultrasonicValues[i] = new ScanTuple(temp_distance, 360);				
 			} else
-				ultrasonicValues[i] = new ScanTuple(sensorReader.readDistance()[0], degree);
+				ultrasonicValues[i] = new ScanTuple(temp_distance, degree);
 
 			if (temp_distance > highestDistance) {
 				highestDistance = temp_distance;
@@ -109,24 +116,34 @@ public class App {
 			rotateSensor(degreeStep);
 			degree += degreeStep;
 		}
-		sendSensorData(ultrasonicValues);
 		
+		double driveDistance = 100;
 		//move
-		if(!firstMove && ultrasonicValues[0].getDistance() > 0.55) {
-			pilot.travel(500);
+		mqttClient.publishLog("Max Index : " + maxIndex + " Distance :" + ultrasonicValues[maxIndex].getDistance() + " Degree :" + ultrasonicValues[maxIndex].getDegree() );
+		if(!firstMove && ultrasonicValues[0].getDistance() > 0.35) {
+			pilot.travel(driveDistance);
 		} else {
-			pilot.rotate(ultrasonicValues[maxIndex].getDegree());	
-			if (ultrasonicValues[maxIndex].getDistance() > 0.55) {
-				pilot.travel(500);
+			mqttClient.publishLog(" Change rotation to:" + ultrasonicValues[maxIndex].getDegree() );
+			if(ultrasonicValues[maxIndex].getDegree() == 360)
+				pilot.rotate(0);
+			else
+				pilot.rotate(ultrasonicValues[maxIndex].getDegree());
+			
+			if (ultrasonicValues[maxIndex].getDistance() > 0.15) {
+				mqttClient.publishLog("maxIndex " + maxIndex + "greater than 15 cm");
+				pilot.travel(driveDistance);
 			} else 
-				pilot.travel(ultrasonicValues[maxIndex].getDistance()*90);
-		
-			if (firstMove) {
-				firstMove = false;
+			{
+				driveDistance = ultrasonicValues[maxIndex].getDistance()*900;
+				pilot.travel(driveDistance);
 			}
+		
+			firstMove = false;
 		}
-	}
-	
+		
+		sendSensorData(ultrasonicValues,driveDistance / 10);
+
+	}	
 	public static void followLine(float step) {
 
 		float light[];
@@ -229,15 +246,16 @@ public class App {
 	         return true;
 	}
 	
-	public static void sendSensorData(ScanTuple ultrasonicValues[]) {
+	public static void sendSensorData(ScanTuple ultrasonicValues[],double distance) {
 		JSONObject jsonResponse = new JSONObject();
 
         try {
             for (int i = 0; i < 4; ++i) {
-                jsonResponse.put("" + ultrasonicValues[i].getDegree(),ultrasonicValues[i].getDistance());
+                jsonResponse.put("" + (int)ultrasonicValues[i].getDegree(),ultrasonicValues[i].getDistance() * 100);
             }
-            jsonResponse.put("x_axis", true);
+            jsonResponse.put("distance", (int)distance);
         }
+        
         catch(Exception e){e.printStackTrace();}
         if (!jsonResponse.toString().equals(""))
             mqttClient.publish(jsonResponse.toString(),MQTTClient.TOPIC_SONIC_DISTANCE);		

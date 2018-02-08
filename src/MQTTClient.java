@@ -15,7 +15,7 @@ public class MQTTClient {
     private Topic [] topic;
 
     private ArrayList<MQTTListener> mqttListener;
-    private static final String SERVER_IP = "192.168.43.246";
+    private static final String SERVER_IP = "192.168.43.197";
     private static final int SERVER_PORT = 1883;
 
     public static final String TOPIC_LOG = "log";
